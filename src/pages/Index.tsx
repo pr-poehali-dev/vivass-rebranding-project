@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const products = [
     {
@@ -115,16 +116,52 @@ const Index = () => {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10 hidden sm:flex">
               <Icon name="Search" size={20} />
             </Button>
             <Button variant="ghost" size="icon" className="hover:bg-primary/10">
               <Icon name="ShoppingCart" size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10 hidden sm:flex">
               <Icon name="User" size={20} />
             </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden hover:bg-primary/10"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <Icon name={mobileMenuOpen ? "X" : "Menu"} size={24} />
+            </Button>
           </div>
+        </div>
+        
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t animate-fade-in">
+            <nav className="container py-4 flex flex-col gap-3">
+              {['home', 'catalog', 'delivery', 'promos', 'contacts'].map((section) => (
+                <button
+                  key={section}
+                  onClick={() => {
+                    setActiveSection(section);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`text-left py-2 px-4 rounded-lg font-medium transition-all ${
+                    activeSection === section 
+                      ? 'bg-primary/10 text-primary' 
+                      : 'text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  {section === 'home' && 'Главная'}
+                  {section === 'catalog' && 'Каталог'}
+                  {section === 'delivery' && 'Доставка'}
+                  {section === 'promos' && 'Акции'}
+                  {section === 'contacts' && 'Контакты'}
+                </button>
+              ))}
+            </nav>
+          </div>
+        )}
         </div>
       </header>
 
@@ -138,14 +175,14 @@ const Index = () => {
                   <Badge className="bg-gradient-to-r from-primary to-secondary text-white border-0 px-4 py-1">
                     Новая коллекция
                   </Badge>
-                  <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+                  <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight">
                     Стиль без
                     <br />
                     <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                       ограничений
                     </span>
                   </h1>
-                  <p className="text-xl text-muted-foreground max-w-lg">
+                  <p className="text-lg sm:text-xl text-muted-foreground max-w-lg">
                     Модная женская одежда больших размеров 48-64. Будьте красивой в любом размере!
                   </p>
                   <div className="flex flex-wrap gap-4">
@@ -176,7 +213,7 @@ const Index = () => {
 
           <section className="py-16 bg-muted/30">
             <div className="container">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                 {[
                   { icon: 'Truck', title: 'Быстрая доставка', desc: 'От 1 дня' },
                   { icon: 'Sparkles', title: 'Качество', desc: 'Премиум ткани' },
@@ -207,7 +244,7 @@ const Index = () => {
               <p className="text-xl text-muted-foreground">Выбирайте из нашего ассортимента</p>
             </div>
 
-            <div className="mb-8 flex flex-wrap gap-3">
+            <div className="mb-8 flex flex-wrap gap-2 md:gap-3">
               {['Все', 'Платья', 'Блузы', 'Брюки', 'Туники', 'Костюмы', 'Кардиганы'].map((cat) => (
                 <Button key={cat} variant="outline" className="hover:border-primary hover:text-primary">
                   {cat}
@@ -215,7 +252,7 @@ const Index = () => {
               ))}
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {products.map((product, idx) => (
                 <Card 
                   key={product.id} 
@@ -240,13 +277,13 @@ const Index = () => {
                       />
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-3">
-                    <div className="text-sm text-muted-foreground">{product.category} • Размеры {product.sizes}</div>
-                    <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                  <CardContent className="p-4 md:p-6 space-y-2 md:space-y-3">
+                    <div className="text-xs md:text-sm text-muted-foreground">{product.category} • Размеры {product.sizes}</div>
+                    <CardTitle className="text-lg md:text-xl group-hover:text-primary transition-colors">
                       {product.name}
                     </CardTitle>
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-bold">{product.price.toLocaleString()} ₽</span>
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <span className="text-xl md:text-2xl font-bold">{product.price.toLocaleString()} ₽</span>
                       {product.oldPrice && (
                         <span className="text-sm text-muted-foreground line-through">
                           {product.oldPrice.toLocaleString()} ₽
@@ -254,10 +291,11 @@ const Index = () => {
                       )}
                     </div>
                   </CardContent>
-                  <CardFooter className="p-6 pt-0 flex gap-3">
-                    <Button className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white">
-                      <Icon name="ShoppingCart" size={18} className="mr-2" />
-                      В корзину
+                  <CardFooter className="p-4 md:p-6 pt-0 flex gap-2 md:gap-3">
+                    <Button className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white text-sm md:text-base">
+                      <Icon name="ShoppingCart" size={16} className="mr-1 md:mr-2" />
+                      <span className="hidden sm:inline">В корзину</span>
+                      <span className="sm:hidden">Купить</span>
                     </Button>
                     <Button variant="outline" size="icon" className="hover:border-primary hover:text-primary">
                       <Icon name="Heart" size={18} />
@@ -312,9 +350,9 @@ const Index = () => {
 
             <Separator className="my-12" />
 
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold">Способы оплаты</h3>
-              <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-4 md:space-y-6">
+              <h3 className="text-xl md:text-2xl font-bold">Способы оплаты</h3>
+              <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-3">
                 {[
                   { icon: 'CreditCard', title: 'Банковской картой', desc: 'Visa, MasterCard, МИР' },
                   { icon: 'Wallet', title: 'Электронные деньги', desc: 'ЮMoney, QIWI' },
@@ -346,7 +384,7 @@ const Index = () => {
               <p className="text-xl text-muted-foreground">Выгодные предложения для вас</p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 mb-12">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 mb-8 md:mb-12">
               {promos.map((promo) => (
                 <Card key={promo.id} className="overflow-hidden border-2 hover:border-primary transition-all group">
                   <div className="relative h-64">
@@ -365,13 +403,13 @@ const Index = () => {
             </div>
 
             <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
-              <CardContent className="p-8">
+              <CardContent className="p-4 md:p-8">
                 <div className="flex flex-col md:flex-row items-center gap-6">
                   <div className="flex-1 space-y-3">
                     <h3 className="text-2xl font-bold">Подпишитесь на рассылку</h3>
                     <p className="text-muted-foreground">Получайте информацию о новых акциях и специальных предложениях</p>
                   </div>
-                  <div className="flex gap-2 w-full md:w-auto">
+                  <div className="flex gap-2 w-full md:w-auto flex-col sm:flex-row">
                     <Input placeholder="Ваш email" className="md:w-64" />
                     <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white">
                       Подписаться
@@ -392,7 +430,7 @@ const Index = () => {
               <p className="text-xl text-muted-foreground">Свяжитесь с нами удобным способом</p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3 mb-12">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 mb-8 md:mb-12">
               {[
                 { icon: 'Phone', title: 'Телефон', value: '+7 (495) 123-45-67', link: 'tel:+74951234567' },
                 { icon: 'Mail', title: 'Email', value: 'info@vivass.ru', link: 'mailto:info@vivass.ru' },
@@ -448,7 +486,7 @@ const Index = () => {
 
       <footer className="border-t bg-muted/30 py-12 mt-16">
         <div className="container">
-          <div className="grid gap-8 md:grid-cols-4">
+          <div className="grid gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-secondary to-accent">
