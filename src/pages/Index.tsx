@@ -12,68 +12,74 @@ const Index = () => {
   const products = [
     {
       id: 1,
-      name: 'Смартфон Galaxy Pro',
-      price: 89990,
-      oldPrice: 109990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/e4119706-8ac7-4ecc-abc6-d0c7b6524a49.jpg',
+      name: 'Платье "Элегант"',
+      price: 4990,
+      oldPrice: 6990,
+      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
       badge: 'ХИТ',
-      category: 'Электроника'
+      category: 'Платья',
+      sizes: '50-62'
     },
     {
       id: 2,
-      name: 'Наушники AirSound',
-      price: 12990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/e4119706-8ac7-4ecc-abc6-d0c7b6524a49.jpg',
+      name: 'Блуза "Романтика"',
+      price: 2990,
+      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
       badge: 'NEW',
-      category: 'Аксессуары'
+      category: 'Блузы',
+      sizes: '50-60'
     },
     {
       id: 3,
-      name: 'Умные часы WatchX',
-      price: 24990,
-      oldPrice: 29990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/e4119706-8ac7-4ecc-abc6-d0c7b6524a49.jpg',
+      name: 'Брюки "Комфорт"',
+      price: 3490,
+      oldPrice: 4990,
+      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
       badge: 'SALE',
-      category: 'Гаджеты'
+      category: 'Брюки',
+      sizes: '48-64'
     },
     {
       id: 4,
-      name: 'Планшет TabPro',
-      price: 45990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/e4119706-8ac7-4ecc-abc6-d0c7b6524a49.jpg',
-      category: 'Электроника'
+      name: 'Туника "Весна"',
+      price: 2790,
+      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
+      category: 'Туники',
+      sizes: '52-62'
     },
     {
       id: 5,
-      name: 'Колонка SoundBox',
-      price: 7990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/e4119706-8ac7-4ecc-abc6-d0c7b6524a49.jpg',
+      name: 'Костюм "Деловой"',
+      price: 6990,
+      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
       badge: 'NEW',
-      category: 'Аудио'
+      category: 'Костюмы',
+      sizes: '50-64'
     },
     {
       id: 6,
-      name: 'Камера ProShot',
-      price: 64990,
-      oldPrice: 79990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/e4119706-8ac7-4ecc-abc6-d0c7b6524a49.jpg',
+      name: 'Кардиган "Уют"',
+      price: 3990,
+      oldPrice: 5490,
+      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
       badge: 'SALE',
-      category: 'Фото'
+      category: 'Кардиганы',
+      sizes: '48-62'
     }
   ];
 
   const promos = [
     {
       id: 1,
-      title: 'Скидки до 50%',
-      description: 'На всю электронику в ноябре',
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/14afc8cd-2363-48cb-b486-299a7c5a3c19.jpg'
+      title: 'Скидки до 40%',
+      description: 'На новую коллекцию осень-зима',
+      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/3f1fa172-9dbb-48ec-980a-caa1ac304209.jpg'
     },
     {
       id: 2,
       title: 'Бесплатная доставка',
-      description: 'При заказе от 5000 ₽',
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/14afc8cd-2363-48cb-b486-299a7c5a3c19.jpg'
+      description: 'При заказе от 3000 ₽',
+      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/3f1fa172-9dbb-48ec-980a-caa1ac304209.jpg'
     }
   ];
 
@@ -83,7 +89,7 @@ const Index = () => {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-secondary to-accent">
-              <Icon name="Zap" size={24} className="text-white" />
+              <Icon name="Sparkles" size={24} className="text-white" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
               VIVASS
@@ -130,17 +136,17 @@ const Index = () => {
               <div className="grid gap-8 md:grid-cols-2 items-center">
                 <div className="space-y-6 animate-slide-up">
                   <Badge className="bg-gradient-to-r from-primary to-secondary text-white border-0 px-4 py-1">
-                    Новинки 2024
+                    Новая коллекция
                   </Badge>
                   <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-                    Технологии
+                    Стиль без
                     <br />
                     <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                      будущего
+                      ограничений
                     </span>
                   </h1>
                   <p className="text-xl text-muted-foreground max-w-lg">
-                    Откройте для себя мир инноваций с самой современной электроникой и гаджетами
+                    Модная женская одежда больших размеров 48-64. Будьте красивой в любом размере!
                   </p>
                   <div className="flex flex-wrap gap-4">
                     <Button 
@@ -159,7 +165,7 @@ const Index = () => {
                 <div className="relative animate-scale-in">
                   <div className="absolute -inset-4 bg-gradient-to-r from-primary via-secondary to-accent opacity-30 blur-3xl rounded-full" />
                   <img 
-                    src="https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/a0221e23-ccc3-4ccc-a9af-b332c19b89d7.jpg"
+                    src="https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/a496c178-228c-4092-a7ea-ff05c89461fd.jpg"
                     alt="Hero"
                     className="relative rounded-3xl shadow-2xl w-full"
                   />
@@ -173,9 +179,9 @@ const Index = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 {[
                   { icon: 'Truck', title: 'Быстрая доставка', desc: 'От 1 дня' },
-                  { icon: 'Shield', title: 'Гарантия', desc: 'До 3 лет' },
-                  { icon: 'CreditCard', title: 'Оплата', desc: 'Любым способом' },
-                  { icon: 'Headphones', title: 'Поддержка 24/7', desc: 'Всегда на связи' }
+                  { icon: 'Sparkles', title: 'Качество', desc: 'Премиум ткани' },
+                  { icon: 'Ruler', title: 'Размеры', desc: '48-64' },
+                  { icon: 'Heart', title: 'Поддержка', desc: 'Консультации' }
                 ].map((item, idx) => (
                   <div key={idx} className="flex flex-col items-center text-center gap-3 p-4 rounded-2xl hover:bg-background transition-all duration-300 group">
                     <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -202,7 +208,7 @@ const Index = () => {
             </div>
 
             <div className="mb-8 flex flex-wrap gap-3">
-              {['Все', 'Электроника', 'Гаджеты', 'Аудио', 'Фото', 'Аксессуары'].map((cat) => (
+              {['Все', 'Платья', 'Блузы', 'Брюки', 'Туники', 'Костюмы', 'Кардиганы'].map((cat) => (
                 <Button key={cat} variant="outline" className="hover:border-primary hover:text-primary">
                   {cat}
                 </Button>
@@ -235,7 +241,7 @@ const Index = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="p-6 space-y-3">
-                    <div className="text-sm text-muted-foreground">{product.category}</div>
+                    <div className="text-sm text-muted-foreground">{product.category} • Размеры {product.sizes}</div>
                     <CardTitle className="text-xl group-hover:text-primary transition-colors">
                       {product.name}
                     </CardTitle>
@@ -453,7 +459,7 @@ const Index = () => {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Современные технологии для вашего комфорта
+                Модная одежда больших размеров для стильных женщин
               </p>
             </div>
             
