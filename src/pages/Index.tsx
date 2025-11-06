@@ -162,7 +162,6 @@ const Index = () => {
             </nav>
           </div>
         )}
-        </div>
       </header>
 
       {activeSection === 'home' && (
