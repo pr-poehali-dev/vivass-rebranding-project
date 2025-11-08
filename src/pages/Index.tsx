@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('Все');
+  const [selectedSize, setSelectedSize] = useState('Все');
 
   const products = [
     {
@@ -243,16 +245,75 @@ const Index = () => {
               <p className="text-xl text-muted-foreground">Выбирайте из нашего ассортимента</p>
             </div>
 
-            <div className="mb-8 flex flex-wrap gap-2 md:gap-3">
-              {['Все', 'Платья', 'Блузы', 'Брюки', 'Туники', 'Костюмы', 'Кардиганы'].map((cat) => (
-                <Button key={cat} variant="outline" className="hover:border-primary hover:text-primary">
-                  {cat}
+            <div className="mb-8 space-y-6">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Icon name="Layers" size={20} className="text-primary" />
+                  <h3 className="font-semibold text-lg">Категория</h3>
+                </div>
+                <div className="flex flex-wrap gap-2 md:gap-3">
+                  {['Все', 'Платья', 'Блузы', 'Брюки', 'Туники', 'Костюмы', 'Кардиганы'].map((cat) => (
+                    <Button 
+                      key={cat} 
+                      variant={selectedCategory === cat ? "default" : "outline"}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={selectedCategory === cat ? "bg-gradient-to-r from-primary to-secondary text-white" : "hover:border-primary hover:text-primary"}
+                    >
+                      {cat}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Icon name="Ruler" size={20} className="text-primary" />
+                  <h3 className="font-semibold text-lg">Размер</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {['Все', '48', '50', '52', '54', '56', '58', '60', '62', '64'].map((size) => (
+                    <Button 
+                      key={size} 
+                      variant={selectedSize === size ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedSize(size)}
+                      className={selectedSize === size ? "bg-gradient-to-r from-primary to-secondary text-white" : "hover:border-primary hover:text-primary"}
+                    >
+                      {size}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-muted-foreground">Найдено товаров: <span className="font-semibold text-foreground">{products.filter(product => {
+                const categoryMatch = selectedCategory === 'Все' || product.category === selectedCategory;
+                const sizeMatch = selectedSize === 'Все' || product.sizes.includes(selectedSize);
+                return categoryMatch && sizeMatch;
+              }).length}</span></p>
+              {(selectedCategory !== 'Все' || selectedSize !== 'Все') && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCategory('Все');
+                    setSelectedSize('Все');
+                  }}
+                  className="text-muted-foreground hover:text-primary"
+                >
+                  <Icon name="X" size={16} className="mr-1" />
+                  Сбросить фильтры
                 </Button>
-              ))}
+              )}
             </div>
 
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product, idx) => (
+              {products.filter(product => {
+                const categoryMatch = selectedCategory === 'Все' || product.category === selectedCategory;
+                const sizeMatch = selectedSize === 'Все' || product.sizes.includes(selectedSize);
+                return categoryMatch && sizeMatch;
+              }).map((product, idx) => (
                 <Card 
                   key={product.id} 
                   className="group overflow-hidden border-2 hover:border-primary transition-all duration-300 hover:shadow-2xl animate-fade-in"
