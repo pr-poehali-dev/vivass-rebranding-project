@@ -75,10 +75,22 @@ const Admin = () => {
               VIVASS Admin
             </span>
           </div>
-          <Button variant="outline" onClick={() => window.location.href = '/'}>
-            <Icon name="ArrowLeft" size={16} className="mr-2" />
-            На сайт
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.href = '/'}>
+              <Icon name="ArrowLeft" size={16} className="mr-2" />
+              На сайт
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                localStorage.removeItem('adminAuth');
+                window.location.href = '/login';
+              }}
+            >
+              <Icon name="LogOut" size={16} className="mr-2" />
+              Выйти
+            </Button>
+          </div>
         </div>
       </header>
 
