@@ -4,6 +4,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from typing import Dict, Any
 from datetime import datetime
+import urllib.request
+import urllib.parse
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -144,6 +146,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         cursor.close()
         conn.close()
         
+        send_order_emails(order_id, customer_name, customer_email, customer_phone, total_amount, items)
+        
         return {
             'statusCode': 201,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -192,3 +196,101 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'isBase64Encoded': False,
         'body': json.dumps({'error': 'Method not allowed'})
     }
+
+def send_order_emails(order_id: int, customer_name: str, customer_email: str, customer_phone: str, total_amount: float, items: list):
+    admin_email = os.environ.get('ADMIN_EMAIL')
+    email_function_url = 'https://functions.poehali.dev/send-email'
+    
+    items_html = ''.join([
+        f'<tr><td>{item.get("product_name")}</td><td>{item.get("size", "-")}</td><td>{item.get("quantity")}</td><td>{item.get("product_price")} ₽</td><td>{item.get("subtotal")} ₽</td></tr>'
+        for item in items
+    ])
+    
+    if admin_email:
+        admin_html = f'''
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #4A90E2;">Новый заказ #{order_id}</h2>
+            <p><strong>Клиент:</strong> {customer_name}</p>
+            <p><strong>Телефон:</strong> {customer_phone}</p>
+            <p><strong>Email:</strong> {customer_email or "не указан"}</p>
+            <h3>Товары:</h3>
+            <table style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">Товар</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Размер</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Кол-во</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Цена</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>{items_html}</tbody>
+            </table>
+            <h3>Итого: {total_amount} ₽</h3>
+        </body>
+        </html>
+        '''
+        
+        admin_data = json.dumps({
+            'to': admin_email,
+            'subject': f'Новый заказ #{order_id} на сайте VIVASS',
+            'html': admin_html
+        }).encode('utf-8')
+        
+        admin_req = urllib.request.Request(
+            email_function_url,
+            data=admin_data,
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+        
+        try:
+            urllib.request.urlopen(admin_req)
+        except Exception:
+            pass
+    
+    if customer_email:
+        customer_html = f'''
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #4A90E2;">Спасибо за заказ, {customer_name}!</h2>
+            <p>Ваш заказ <strong>#{order_id}</strong> успешно оформлен.</p>
+            <p>Мы свяжемся с вами в ближайшее время для подтверждения.</p>
+            <h3>Детали заказа:</h3>
+            <table style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">Товар</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Размер</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Кол-во</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Цена</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>{items_html}</tbody>
+            </table>
+            <h3>Итого: {total_amount} ₽</h3>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+            <p style="color: #777; font-size: 12px;">Это автоматическое письмо, отвечать на него не нужно.</p>
+        </body>
+        </html>
+        '''
+        
+        customer_data = json.dumps({
+            'to': customer_email,
+            'subject': f'Ваш заказ #{order_id} в магазине VIVASS',
+            'html': customer_html
+        }).encode('utf-8')
+        
+        customer_req = urllib.request.Request(
+            email_function_url,
+            data=customer_data,
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+        
+        try:
+            urllib.request.urlopen(customer_req)
+        except Exception:
+            pass
