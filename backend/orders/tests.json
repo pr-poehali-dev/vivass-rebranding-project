@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Get all orders",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyMatcher": "skip"
+    },
+    {
+      "name": "Create new order",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "customer_name": "Тестовый Клиент",
+        "customer_phone": "+79991234567",
+        "customer_email": "test@example.com",
+        "delivery_address": "Москва, ул. Тестовая, 1",
+        "payment_method": "card",
+        "delivery_method": "courier",
+        "items": [
+          {
+            "product_id": 1,
+            "product_name": "Тестовый товар",
+            "product_price": 2990,
+            "size": "52",
+            "quantity": 1,
+            "subtotal": 2990
+          }
+        ]
+      },
+      "expectedStatus": 201,
+      "bodyMatcher": "skip"
+    }
+  ]
+}

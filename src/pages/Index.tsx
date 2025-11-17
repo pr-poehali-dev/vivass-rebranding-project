@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,65 +11,38 @@ const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Все');
   const [selectedSize, setSelectedSize] = useState('Все');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const products = [
-    {
-      id: 1,
-      name: 'Платье "Элегант"',
-      price: 4990,
-      oldPrice: 6990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
-      badge: 'ХИТ',
-      category: 'Платья',
-      sizes: '50-62'
-    },
-    {
-      id: 2,
-      name: 'Блуза "Романтика"',
-      price: 2990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
-      badge: 'NEW',
-      category: 'Блузы',
-      sizes: '50-60'
-    },
-    {
-      id: 3,
-      name: 'Брюки "Комфорт"',
-      price: 3490,
-      oldPrice: 4990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
-      badge: 'SALE',
-      category: 'Брюки',
-      sizes: '48-64'
-    },
-    {
-      id: 4,
-      name: 'Туника "Весна"',
-      price: 2790,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
-      category: 'Туники',
-      sizes: '52-62'
-    },
-    {
-      id: 5,
-      name: 'Костюм "Деловой"',
-      price: 6990,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
-      badge: 'NEW',
-      category: 'Костюмы',
-      sizes: '50-64'
-    },
-    {
-      id: 6,
-      name: 'Кардиган "Уют"',
-      price: 3990,
-      oldPrice: 5490,
-      image: 'https://cdn.poehali.dev/projects/580efbcf-2b7f-4be2-ab87-39c8b241c412/files/98178635-e8d9-4957-b063-5cdc53076a38.jpg',
-      badge: 'SALE',
-      category: 'Кардиганы',
-      sizes: '48-62'
-    }
-  ];
+  useEffect(() => {
+    fetchProducts();
+  }, [selectedCategory, selectedSize]);
+
+  const fetchProducts = async () => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (selectedCategory !== 'Все') params.append('category', selectedCategory);
+    if (selectedSize !== 'Все') params.append('size', selectedSize);
+    
+    const url = `https://functions.poehali.dev/68a49b74-7604-4ba7-88e4-b850c9f8620e?${params.toString()}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    const formattedProducts = data.products.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      oldPrice: p.old_price,
+      image: p.image_url,
+      badge: p.badge,
+      category: p.category,
+      sizes: p.sizes
+    }));
+    
+    setProducts(formattedProducts);
+    setLoading(false);
+  };
 
   const promos = [
     {
@@ -287,11 +260,7 @@ const Index = () => {
             </div>
 
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-muted-foreground">Найдено товаров: <span className="font-semibold text-foreground">{products.filter(product => {
-                const categoryMatch = selectedCategory === 'Все' || product.category === selectedCategory;
-                const sizeMatch = selectedSize === 'Все' || product.sizes.includes(selectedSize);
-                return categoryMatch && sizeMatch;
-              }).length}</span></p>
+              <p className="text-muted-foreground">Найдено товаров: <span className="font-semibold text-foreground">{products.length}</span></p>
               {(selectedCategory !== 'Все' || selectedSize !== 'Все') && (
                 <Button 
                   variant="ghost" 
@@ -308,12 +277,13 @@ const Index = () => {
               )}
             </div>
 
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {products.filter(product => {
-                const categoryMatch = selectedCategory === 'Все' || product.category === selectedCategory;
-                const sizeMatch = selectedSize === 'Все' || product.sizes.includes(selectedSize);
-                return categoryMatch && sizeMatch;
-              }).map((product, idx) => (
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {products.map((product, idx) => (
                 <Card 
                   key={product.id} 
                   className="group overflow-hidden border-2 hover:border-primary transition-all duration-300 hover:shadow-2xl animate-fade-in"
@@ -363,7 +333,8 @@ const Index = () => {
                   </CardFooter>
                 </Card>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </section>
       )}
