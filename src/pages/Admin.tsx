@@ -17,6 +17,9 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [bulkData, setBulkData] = useState('');
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -108,23 +111,89 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="products">
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-6 flex flex-wrap gap-3 justify-between items-center">
               <h2 className="text-3xl font-bold">Управление товарами</h2>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-gradient-to-r from-primary to-secondary">
-                    <Icon name="Plus" size={16} className="mr-2" />
-                    Добавить товар
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Добавить новый товар</DialogTitle>
-                    <DialogDescription>Заполните информацию о товаре</DialogDescription>
-                  </DialogHeader>
-                  <ProductForm onSuccess={() => { setIsDialogOpen(false); fetchProducts(); }} />
-                </DialogContent>
-              </Dialog>
+              <div className="flex gap-2">
+                <Dialog open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Icon name="Upload" size={16} className="mr-2" />
+                      Массовая загрузка
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Массовая загрузка товаров</DialogTitle>
+                      <DialogDescription>
+                        Вставьте данные в формате JSON. Пример:<br/>
+                        <code className="text-xs block mt-2 p-2 bg-muted rounded">
+                          [{`{"name": "Платье летнее", "price": 2990, "category": "Платья", "sizes": "48-60", "image_url": "...", "description": "...", "badge": "NEW"}`}]
+                        </code>
+                      </DialogDescription>
+                    </DialogHeader>
+                    <BulkUploadForm 
+                      bulkData={bulkData}
+                      setBulkData={setBulkData}
+                      bulkLoading={bulkLoading}
+                      onSubmit={async () => {
+                        setBulkLoading(true);
+                        try {
+                          const items = JSON.parse(bulkData);
+                          if (!Array.isArray(items)) {
+                            alert('Данные должны быть массивом');
+                            setBulkLoading(false);
+                            return;
+                          }
+                          
+                          let successCount = 0;
+                          let errorCount = 0;
+                          
+                          for (const item of items) {
+                            try {
+                              const response = await fetch('https://functions.poehali.dev/68a49b74-7604-4ba7-88e4-b850c9f8620e', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(item)
+                              });
+                              
+                              if (response.ok) {
+                                successCount++;
+                              } else {
+                                errorCount++;
+                              }
+                            } catch (err) {
+                              errorCount++;
+                            }
+                          }
+                          
+                          alert(`Загружено: ${successCount}, Ошибок: ${errorCount}`);
+                          setBulkData('');
+                          setIsBulkUploadOpen(false);
+                          fetchProducts();
+                        } catch (err) {
+                          alert('Ошибка парсинга JSON: ' + (err as Error).message);
+                        }
+                        setBulkLoading(false);
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-gradient-to-r from-primary to-secondary">
+                      <Icon name="Plus" size={16} className="mr-2" />
+                      Добавить товар
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Добавить новый товар</DialogTitle>
+                      <DialogDescription>Заполните информацию о товаре</DialogDescription>
+                    </DialogHeader>
+                    <ProductForm onSuccess={() => { setIsDialogOpen(false); fetchProducts(); }} />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
 
             {loading ? (
@@ -317,6 +386,36 @@ const Admin = () => {
   );
 };
 
+const BulkUploadForm = ({ bulkData, setBulkData, bulkLoading, onSubmit }: any) => {
+  return (
+    <div className="space-y-4">
+      <Textarea 
+        value={bulkData}
+        onChange={(e) => setBulkData(e.target.value)}
+        placeholder="Вставьте JSON с массивом товаров..."
+        className="min-h-[400px] font-mono text-sm"
+      />
+      <Button 
+        onClick={onSubmit}
+        disabled={bulkLoading || !bulkData}
+        className="w-full bg-gradient-to-r from-primary to-secondary"
+      >
+        {bulkLoading ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+            Загрузка...
+          </>
+        ) : (
+          <>
+            <Icon name="Upload" size={16} className="mr-2" />
+            Загрузить товары
+          </>
+        )}
+      </Button>
+    </div>
+  );
+};
+
 const ProductForm = ({ onSuccess }: { onSuccess: () => void }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -328,10 +427,39 @@ const ProductForm = ({ onSuccess }: { onSuccess: () => void }) => {
     badge: '',
     sizes: ''
   });
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSuccess();
+    setLoading(true);
+    
+    try {
+      const response = await fetch('https://functions.poehali.dev/68a49b74-7604-4ba7-88e4-b850c9f8620e', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          old_price: formData.old_price ? parseFloat(formData.old_price) : null,
+          category: formData.category,
+          image_url: formData.image_url,
+          badge: formData.badge || null,
+          sizes: formData.sizes
+        })
+      });
+      
+      if (response.ok) {
+        alert('Товар успешно добавлен!');
+        onSuccess();
+      } else {
+        alert('Ошибка при добавлении товара');
+      }
+    } catch (err) {
+      alert('Ошибка: ' + (err as Error).message);
+    }
+    
+    setLoading(false);
   };
 
   return (
@@ -407,8 +535,19 @@ const ProductForm = ({ onSuccess }: { onSuccess: () => void }) => {
           onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
         />
       </div>
-      <Button type="submit" className="w-full bg-gradient-to-r from-primary to-secondary">
-        Добавить товар
+      <Button 
+        type="submit" 
+        disabled={loading}
+        className="w-full bg-gradient-to-r from-primary to-secondary"
+      >
+        {loading ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+            Добавление...
+          </>
+        ) : (
+          'Добавить товар'
+        )}
       </Button>
     </form>
   );

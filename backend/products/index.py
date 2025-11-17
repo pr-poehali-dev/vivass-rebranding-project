@@ -32,32 +32,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body_data = json.loads(event.get('body', '{}'))
         
         name = body_data.get('name')
-        description = body_data.get('description')
+        description = body_data.get('description', '')
         price = body_data.get('price')
         old_price = body_data.get('old_price')
         category = body_data.get('category')
-        image_url = body_data.get('image_url')
+        image_url = body_data.get('image_url', '')
         badge = body_data.get('badge')
-        sizes = body_data.get('sizes')
+        sizes = body_data.get('sizes', '')
         
         if not name or not price or not category:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
-                'body': json.dumps({'error': 'Missing required fields'})
+                'body': json.dumps({'error': 'Missing required fields: name, price, category'})
             }
         
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        slug = name.lower().replace(' ', '-').replace('"', '')
+        import re
+        slug = re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
         
-        cursor.execute('''
-            SELECT id FROM categories WHERE name = %s
-        ''', (category,))
+        cursor.execute("SELECT id FROM categories WHERE name = %s", (category,))
         category_result = cursor.fetchone()
-        category_id = category_result['id'] if category_result else None
+        
+        if not category_result:
+            cursor.close()
+            conn.close()
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': f'Category "{category}" not found'})
+            }
+        
+        category_id = category_result['id']
         
         cursor.execute('''
             INSERT INTO products (name, slug, description, price, old_price, category_id, image_url, badge, sizes)

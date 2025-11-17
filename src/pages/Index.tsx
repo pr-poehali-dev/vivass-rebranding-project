@@ -5,6 +5,23 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  quantity: number;
+  size?: string;
+}
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
@@ -13,10 +30,61 @@ const Index = () => {
   const [selectedSize, setSelectedSize] = useState('Все');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
 
   useEffect(() => {
     fetchProducts();
   }, [selectedCategory, selectedSize]);
+
+  const addToCart = (product: any, size?: string) => {
+    const existingItem = cart.find(item => item.id === product.id && item.size === size);
+    if (existingItem) {
+      setCart(cart.map(item => 
+        item.id === product.id && item.size === size
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
+    } else {
+      setCart([...cart, {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        quantity: 1,
+        size
+      }]);
+    }
+    setCartOpen(true);
+  };
+
+  const removeFromCart = (id: number, size?: string) => {
+    setCart(cart.filter(item => !(item.id === id && item.size === size)));
+  };
+
+  const updateQuantity = (id: number, size: string | undefined, delta: number) => {
+    setCart(cart.map(item => {
+      if (item.id === id && item.size === size) {
+        const newQuantity = item.quantity + delta;
+        return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
+      }
+      return item;
+    }).filter(item => item.quantity > 0));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -94,9 +162,110 @@ const Index = () => {
             <Button variant="ghost" size="icon" className="hover:bg-primary/10 hidden sm:flex">
               <Icon name="Search" size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-              <Icon name="ShoppingCart" size={20} />
-            </Button>
+            <Sheet open={cartOpen} onOpenChange={setCartOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10 relative">
+                  <Icon name="ShoppingCart" size={20} />
+                  {cartItemsCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-accent text-white text-xs">
+                      {cartItemsCount}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Корзина</SheetTitle>
+                  <SheetDescription>
+                    {cartItemsCount > 0 ? `Товаров в корзине: ${cartItemsCount}` : 'Корзина пуста'}
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-8 space-y-4">
+                  {cart.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Icon name="ShoppingCart" size={48} className="mx-auto mb-4 opacity-30" />
+                      <p>Ваша корзина пуста</p>
+                    </div>
+                  ) : (
+                    <>
+                      {cart.map((item) => (
+                        <Card key={`${item.id}-${item.size}`} className="overflow-hidden">
+                          <CardContent className="p-4">
+                            <div className="flex gap-4">
+                              <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
+                              <div className="flex-1 space-y-2">
+                                <div>
+                                  <h4 className="font-semibold text-sm">{item.name}</h4>
+                                  {item.size && (
+                                    <p className="text-xs text-muted-foreground">Размер: {item.size}</p>
+                                  )}
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Button 
+                                      size="icon" 
+                                      variant="outline" 
+                                      className="h-7 w-7"
+                                      onClick={() => updateQuantity(item.id, item.size, -1)}
+                                    >
+                                      <Icon name="Minus" size={14} />
+                                    </Button>
+                                    <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                                    <Button 
+                                      size="icon" 
+                                      variant="outline" 
+                                      className="h-7 w-7"
+                                      onClick={() => updateQuantity(item.id, item.size, 1)}
+                                    >
+                                      <Icon name="Plus" size={14} />
+                                    </Button>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold">{(item.price * item.quantity).toLocaleString()} ₽</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-8 w-8 hover:bg-red-50 hover:text-red-500"
+                                onClick={() => removeFromCart(item.id, item.size)}
+                              >
+                                <Icon name="Trash2" size={16} />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      <Separator />
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between text-lg font-bold">
+                          <span>Итого:</span>
+                          <span>{cartTotal.toLocaleString()} ₽</span>
+                        </div>
+                        <Button 
+                          className="w-full bg-gradient-to-r from-primary to-secondary text-white text-lg h-12"
+                          onClick={() => {
+                            alert('Функция оформления заказа будет добавлена');
+                          }}
+                        >
+                          <Icon name="CreditCard" size={20} className="mr-2" />
+                          Оформить заказ
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setCart([])}
+                        >
+                          <Icon name="Trash2" size={16} className="mr-2" />
+                          Очистить корзину
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
             <Button variant="ghost" size="icon" className="hover:bg-primary/10 hidden sm:flex">
               <Icon name="User" size={20} />
             </Button>
@@ -322,7 +491,10 @@ const Index = () => {
                     </div>
                   </CardContent>
                   <CardFooter className="p-4 md:p-6 pt-0 flex gap-2 md:gap-3">
-                    <Button className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white text-sm md:text-base">
+                    <Button 
+                      className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white text-sm md:text-base"
+                      onClick={() => addToCart(product)}
+                    >
                       <Icon name="ShoppingCart" size={16} className="mr-1 md:mr-2" />
                       <span className="hidden sm:inline">В корзину</span>
                       <span className="sm:hidden">Купить</span>
