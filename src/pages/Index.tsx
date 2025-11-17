@@ -32,6 +32,17 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [orderForm, setOrderForm] = useState({
+    customer_name: '',
+    customer_phone: '',
+    customer_email: '',
+    delivery_address: '',
+    delivery_method: 'Курьер',
+    payment_method: 'Банковская карта',
+    comment: ''
+  });
+  const [orderLoading, setOrderLoading] = useState(false);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -246,7 +257,8 @@ const Index = () => {
                         <Button 
                           className="w-full bg-gradient-to-r from-primary to-secondary text-white text-lg h-12"
                           onClick={() => {
-                            alert('Функция оформления заказа будет добавлена');
+                            setCartOpen(false);
+                            setCheckoutOpen(true);
                           }}
                         >
                           <Icon name="CreditCard" size={20} className="mr-2" />
@@ -686,6 +698,173 @@ const Index = () => {
           </div>
         </section>
       )}
+
+      <Sheet open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Оформление заказа</SheetTitle>
+            <SheetDescription>
+              Заполните контактные данные для доставки
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-8 space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Имя *</label>
+                <Input 
+                  placeholder="Ваше имя"
+                  value={orderForm.customer_name}
+                  onChange={(e) => setOrderForm({ ...orderForm, customer_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Телефон *</label>
+                <Input 
+                  placeholder="+7 (999) 123-45-67"
+                  value={orderForm.customer_phone}
+                  onChange={(e) => setOrderForm({ ...orderForm, customer_phone: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email</label>
+                <Input 
+                  type="email"
+                  placeholder="your@email.com"
+                  value={orderForm.customer_email}
+                  onChange={(e) => setOrderForm({ ...orderForm, customer_email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Адрес доставки</label>
+                <Input 
+                  placeholder="Улица, дом, квартира"
+                  value={orderForm.delivery_address}
+                  onChange={(e) => setOrderForm({ ...orderForm, delivery_address: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Способ доставки</label>
+                <select 
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                  value={orderForm.delivery_method}
+                  onChange={(e) => setOrderForm({ ...orderForm, delivery_method: e.target.value })}
+                >
+                  <option value="Курьер">Курьерская доставка</option>
+                  <option value="Пункт выдачи">Пункт выдачи</option>
+                  <option value="Почта России">Почта России</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Способ оплаты</label>
+                <select 
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                  value={orderForm.payment_method}
+                  onChange={(e) => setOrderForm({ ...orderForm, payment_method: e.target.value })}
+                >
+                  <option value="Банковская карта">Банковская карта</option>
+                  <option value="Наличные">Наличные при получении</option>
+                  <option value="СБП">Система быстрых платежей</option>
+                  <option value="ЮMoney">ЮMoney</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Комментарий к заказу</label>
+                <textarea 
+                  className="w-full min-h-24 rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="Дополнительная информация..."
+                  value={orderForm.comment}
+                  onChange={(e) => setOrderForm({ ...orderForm, comment: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <h4 className="font-semibold">Ваш заказ:</h4>
+              {cart.map((item) => (
+                <div key={`${item.id}-${item.size}`} className="flex justify-between text-sm">
+                  <span>{item.name} {item.size ? `(${item.size})` : ''} × {item.quantity}</span>
+                  <span className="font-semibold">{(item.price * item.quantity).toLocaleString()} ₽</span>
+                </div>
+              ))}
+              <Separator />
+              <div className="flex justify-between text-lg font-bold">
+                <span>Итого:</span>
+                <span>{cartTotal.toLocaleString()} ₽</span>
+              </div>
+            </div>
+
+            <Button 
+              className="w-full bg-gradient-to-r from-primary to-secondary text-white text-lg h-12"
+              disabled={orderLoading || !orderForm.customer_name || !orderForm.customer_phone || cart.length === 0}
+              onClick={async () => {
+                setOrderLoading(true);
+                try {
+                  const orderData = {
+                    customer_name: orderForm.customer_name,
+                    customer_phone: orderForm.customer_phone,
+                    customer_email: orderForm.customer_email || null,
+                    delivery_address: orderForm.delivery_address || null,
+                    delivery_method: orderForm.delivery_method,
+                    payment_method: orderForm.payment_method,
+                    comment: orderForm.comment || null,
+                    items: cart.map(item => ({
+                      product_id: item.id,
+                      product_name: item.name,
+                      product_price: item.price,
+                      size: item.size || null,
+                      quantity: item.quantity,
+                      subtotal: item.price * item.quantity
+                    }))
+                  };
+
+                  const response = await fetch('https://functions.poehali.dev/228e7b4d-7205-4b2b-b62d-481754385663', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                  });
+
+                  if (response.ok) {
+                    const result = await response.json();
+                    alert(`Заказ №${result.order_id} успешно оформлен! Мы свяжемся с вами в ближайшее время.`);
+                    setCart([]);
+                    setCheckoutOpen(false);
+                    setOrderForm({
+                      customer_name: '',
+                      customer_phone: '',
+                      customer_email: '',
+                      delivery_address: '',
+                      delivery_method: 'Курьер',
+                      payment_method: 'Банковская карта',
+                      comment: ''
+                    });
+                  } else {
+                    alert('Ошибка при оформлении заказа. Попробуйте снова.');
+                  }
+                } catch (err) {
+                  alert('Ошибка соединения. Проверьте интернет и попробуйте снова.');
+                }
+                setOrderLoading(false);
+              }}
+            >
+              {orderLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                  Оформление...
+                </>
+              ) : (
+                <>
+                  <Icon name="Check" size={20} className="mr-2" />
+                  Подтвердить заказ
+                </>
+              )}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <footer className="border-t bg-muted/30 py-12 mt-16">
         <div className="container">
